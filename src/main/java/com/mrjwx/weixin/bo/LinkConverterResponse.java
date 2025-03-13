@@ -29,6 +29,7 @@ public class LinkConverterResponse {
         if (data == null) {
             return LinkConverterResponse.builder().build();
         }
+
         return LinkConverterResponse.builder()
                 .goodsName(json.getJSONObject("data").getString("goodsName"))
                 .goodsThumbUrl(json.getJSONObject("data").getString("goodsThumbUrl"))
