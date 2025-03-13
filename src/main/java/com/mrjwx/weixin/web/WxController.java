@@ -1,9 +1,12 @@
 package com.mrjwx.weixin.web;
 
+import com.mrjwx.weixin.bo.DtkLinkConverterResponse;
 import com.mrjwx.weixin.bo.LinkConverterResponse;
 import com.alibaba.fastjson2.JSONObject;
 import com.mrjwx.weixin.bo.NewLinkConverterResponse;
 import com.mrjwx.weixin.util.CheckUtil;
+import com.mrjwx.weixin.util.MathUtil;
+
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -69,12 +72,7 @@ public class WxController {
                 content = root.getElementsByTagName("Content").item(0).getTextContent();
             }
             log.info("接收到来自 {} 的 {} 消息: {}, 准备按照微信规范返回消息", fromUserName, msgType, content);
-
-            // 假设接收到的content是用户提供的购物链接
-            LinkConverterResponse result = LinkConverter.convertLink(content);
-            log.info("接口返回结果: {}", JSONObject.toJSONString(result));
-            if(Objects.isNull(result.getGoodsId())){
-                // 将接口返回数据按照微信消息的 XML 格式封装
+            if(content.length()>1){
                 String finalResponseXml = String.format("<xml>\n" +
                         "<ToUserName><![CDATA[%s]]></ToUserName>\n" +
                         "<FromUserName><![CDATA[%s]]></FromUserName>\n" +
@@ -83,26 +81,60 @@ public class WxController {
                         "<Content><![CDATA[%s]]></Content>\n" +
                         "</xml>", fromUserName, toUserName, System.currentTimeMillis(), "暂无该商品哦亲亲~");
                 return finalResponseXml;
+
             }
 
-                NewLinkConverterResponse newResponse = NewLinkConverter.convertLink(result.getGoodsId(),"test",result.getSource(),"1","1");
+            // 假设接收到的content是用户提供的购物链接
+            LinkConverterResponse result = LinkConverter.convertLink(content);
+            log.info("接口返回结果: {}", JSONObject.toJSONString(result));
+            if (Objects.nonNull(result.getGoodsId())) {
+                NewLinkConverterResponse newResponse = NewLinkConverter.convertLink(result.getGoodsId(), "test", result.getSource(), "1", "1");
 
-            log.info("接口返回结果: {}", JSONObject.toJSONString(newResponse));
-            String outp=String.format("返利金额 %s,下单链接 %s",newResponse.getCommission(),newResponse.getUrl());
+                log.info("接口返回结果: {}", JSONObject.toJSONString(newResponse));
+                String outp = String.format("返利金额 %s,下单链接 %s", newResponse.getCommission(), newResponse.getUrl());
 
 
-            // 将接口返回数据按照微信消息的 XML 格式封装
+                // 将接口返回数据按照微信消息的 XML 格式封装
+                String finalResponseXml = String.format("<xml>\n" +
+                        "<ToUserName><![CDATA[%s]]></ToUserName>\n" +
+                        "<FromUserName><![CDATA[%s]]></FromUserName>\n" +
+                        "<CreateTime>%d</CreateTime>\n" +
+                        "<MsgType><![CDATA[text]]></MsgType>\n" +
+                        "<Content><![CDATA[%s]]></Content>\n" +
+                        "</xml>", fromUserName, toUserName, System.currentTimeMillis(), outp);
+                return finalResponseXml;
+            }
+            DtkLinkConverterResponse dtkLinkConverterResponse = DtkLinkConverter.convertLink(content);
+            if (Objects.nonNull(dtkLinkConverterResponse) && Objects.nonNull(dtkLinkConverterResponse.getGoodsId())) {
+                String outp = String.format("返利金额 %s,下单链接 %s", MathUtil.calculateCommission(dtkLinkConverterResponse.getReal_post_fee(), dtkLinkConverterResponse.getCommissionRate()), dtkLinkConverterResponse.getCpsFullTpwd());
+                // 将接口返回数据按照微信消息的 XML 格式封装
+                String finalResponseXml = String.format("<xml>\n" +
+                        "<ToUserName><![CDATA[%s]]></ToUserName>\n" +
+                        "<FromUserName><![CDATA[%s]]></FromUserName>\n" +
+                        "<CreateTime>%d</CreateTime>\n" +
+                        "<MsgType><![CDATA[text]]></MsgType>\n" +
+                        "<Content><![CDATA[%s]]></Content>\n" +
+                        "</xml>", fromUserName, toUserName, System.currentTimeMillis(), outp);
+                return finalResponseXml;
+            }
+// 将接口返回数据按照微信消息的 XML 格式封装
             String finalResponseXml = String.format("<xml>\n" +
                     "<ToUserName><![CDATA[%s]]></ToUserName>\n" +
                     "<FromUserName><![CDATA[%s]]></FromUserName>\n" +
                     "<CreateTime>%d</CreateTime>\n" +
                     "<MsgType><![CDATA[text]]></MsgType>\n" +
                     "<Content><![CDATA[%s]]></Content>\n" +
-                    "</xml>", fromUserName, toUserName, System.currentTimeMillis(), outp);
+                    "</xml>", fromUserName, toUserName, System.currentTimeMillis(), "暂无该商品哦亲亲~");
             return finalResponseXml;
+
+
         } catch (Exception e) {
             log.error("调用接口时出错", e);
             return "error";
         }
     }
 }
+
+
+
+
