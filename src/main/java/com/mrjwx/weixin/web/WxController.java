@@ -72,7 +72,7 @@ public class WxController {
                 content = root.getElementsByTagName("Content").item(0).getTextContent();
             }
             log.info("接收到来自 {} 的 {} 消息: {}, 准备按照微信规范返回消息", fromUserName, msgType, content);
-            if(content.length()>1){
+            if(content.length()<1){
                 String finalResponseXml = String.format("<xml>\n" +
                         "<ToUserName><![CDATA[%s]]></ToUserName>\n" +
                         "<FromUserName><![CDATA[%s]]></FromUserName>\n" +
