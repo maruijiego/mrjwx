@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #coze-web-chat-container {
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+<script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.5/libs/cn/index.js "></script>
+<script>
+  // 获取用户标识，这里简单使用一个随机数模拟，实际应用中需要根据具体情况获取
+  const randomNumber = Math.floor(Math.random() * 10000000000); // 生成0到9999999999之间的随机数
+  const userId = String(randomNumber).padStart(10, '0'); // 转换为10位数的字符串
+  const cozeWebSDK = new CozeWebSDK.WebChatClient({
+    config: {
+      bot_id: '7482800638209376282',
+      isIframe: false,
+    },
+    auth:  {
+      type: 'token',
+      token: 'pat_9Eju6kakjc0tLJvWpTZWpUddTRAWNzORYvDweeHz7cpAbkWdoDVtc6tiYc140tlW',
+      onRefreshToken: async () => 'pat_9Eju6kakjc0tLJvWpTZWpUddTRAWNzORYvDweeHz7cpAbkWdoDVtc6tiYc140tlW'
+    },
+    userInfo: {
+        id: userId, // 使用用户标识
+        url: 'https://lf-coze-web-cdn.coze.cn/obj/coze-web-cn/obric/coze/favicon.1970.png',
+        nickname: '施主',
+      },
+      ui: {
+        base: {
+            icon: 'https://lf-coze-web-cdn.coze.cn/obj/coze-web-cn/obric/coze/favicon.1970.png',
+            layout: 'mobile',
+            lang: 'zh-CN', // 添加语言属性
+            zIndex: 1000,
+        },
+        asstBtn: {
+            isNeed: false,
+        },
+      },
+  });
+  cozeWebSDK.showChatBot();
+</script>
+</body>
+</html>
